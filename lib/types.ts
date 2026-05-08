@@ -2,9 +2,25 @@
 // Single source of truth for all Sanity-derived types.
 // Import from here — never redeclare Product/Category/Testimonial locally.
 
-import type { SanityImageSource } from "@sanity/image-url/lib/types/types"
 
-export type SanityImage = SanityImageSource
+export type SanityImage = {
+  asset: {
+    _ref: string
+    _type: "reference"
+  }
+  hotspot?: {
+    x: number
+    y: number
+    height: number
+    width: number
+  }
+  crop?: {
+    top: number
+    bottom: number
+    left: number
+    right: number
+  }
+}
 
 export type SanityProduct = {
   _id: string
