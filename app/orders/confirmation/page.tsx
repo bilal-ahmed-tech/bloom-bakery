@@ -1,5 +1,4 @@
 // app/(shop)/orders/confirmation/page.tsx
-// Server component — reads orderId from URL, fetches real order from Prisma.
 
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -7,8 +6,6 @@ import { CheckCircle } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { formatPKR } from "@/lib/formatting"
 import { auth } from "@/auth"
-
-const session = await auth()
 
 export const metadata = {
   title: "Order Confirmed",
@@ -20,6 +17,7 @@ type Props = {
 }
 
 export default async function OrderConfirmationPage({ searchParams }: Props) {
+  const session = await auth()
   const { orderId } = await searchParams
 
   if (!orderId) notFound()
