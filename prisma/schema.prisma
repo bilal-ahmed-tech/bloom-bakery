@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL") 
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Order {
+  id                     String      @id @default(cuid())
+  userId                 String
+  user                   User        @relation(fields: [userId], references: [id])
+  status                 OrderStatus @default(PENDING)
+  totalPKR               Float
+  totalUSD               Float
+  couponCode             String?
+  discount               Float       @default(0)
+  type                   OrderType   @default(DELIVERY)
+  timeSlot               String?
+  notes                  String?
+  stripePaymentIntentId  String?     // add this
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  items                  OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  name      String
+  variant   String?
+  quantity  Int
+  pricePKR  Float
+  priceUSD  Float
+}
+
+model Coupon {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  discount  Float
+  minOrderPKR Float  @default(0)
+  isActive  Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+}
+model StoreSettings {
+  id                    String  @id @default("singleton")
+  isOpen                Boolean @default(true)
+  freeDeliveryThreshold Float   @default(2000)
+  deliveryFee           Float   @default(250)
+  cutoffTime            String  @default("14:00")
+  announcementText      String?
+  announcementActive    Boolean @default(false)
+}
