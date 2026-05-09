@@ -45,7 +45,7 @@ export default async function Categories() {
             No categories yet. Add them in Sanity Studio.
           </p>
         ) : (
-          <ul className="mt-10 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-6">
+          <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-6">
             {categories.map((cat) => {
               const Icon = iconMap[cat.slug] ?? ShoppingBag
               return (

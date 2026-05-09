@@ -72,7 +72,7 @@ function InputField({
           } ${error ? "border-rose bg-rose/5" : "border-border"}`}
         />
         {rightElement && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 -translate-y-1/3">
             {rightElement}
           </div>
         )}

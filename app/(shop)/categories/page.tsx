@@ -80,7 +80,7 @@ export default async function CategoriesPage() {
             </Link>
           </div>
         ) : (
-          <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
             {categories.map((cat) => {
               const Icon = iconMap[cat.slug] ?? ShoppingBag;
               return (
