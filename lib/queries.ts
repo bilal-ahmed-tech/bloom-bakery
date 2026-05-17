@@ -61,6 +61,7 @@ export const testimonialsQuery = `
     name,
     location,
     review,
-    rating
+    rating,
+    avatar
   }
 `

@@ -1,6 +1,7 @@
 // components/shop/Testimonials.tsx
-import { Star } from "lucide-react"
-import { sanityFetch } from "@/lib/sanity"
+import { Star, UserCircle2 } from "lucide-react"
+import Image from "next/image"
+import { sanityFetch, urlFor } from "@/lib/sanity"
 import { testimonialsQuery } from "@/lib/queries"
 import type { SanityTestimonial } from "@/lib/types"
 
@@ -25,8 +26,9 @@ export default async function Testimonials() {
           {testimonials.map((t) => (
             <article
               key={t._id}
-              className="rounded-2xl border border-border bg-cream p-7 shadow-soft"
+              className="flex flex-col rounded-2xl border border-border bg-cream p-7 shadow-soft"
             >
+              {/* Stars */}
               <div
                 className="flex items-center gap-1"
                 aria-label={`${t.rating} out of 5 stars`}
@@ -44,13 +46,35 @@ export default async function Testimonials() {
                   />
                 ))}
               </div>
-              <p className="mt-5 font-display text-lg italic leading-relaxed text-cocoa">
+
+              {/* Review text — grows to push reviewer info to the bottom */}
+              <p className="mt-5 flex-1 font-display text-lg italic leading-relaxed text-cocoa">
                 &ldquo;{t.review}&rdquo;
               </p>
-              <p className="mt-6 text-sm font-semibold text-cocoa">{t.name}</p>
-              {t.location && (
-                <p className="text-xs text-muted">{t.location}</p>
-              )}
+
+              {/* Reviewer info — always aligned to the bottom of every card */}
+              <div className="mt-6 flex items-center gap-3">
+                {t.avatar ? (
+                  <Image
+                    src={urlFor(t.avatar).width(40).height(40).fit("crop").url()}
+                    alt={t.name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserCircle2
+                    className="h-10 w-10 shrink-0 text-muted"
+                    aria-hidden="true"
+                  />
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-cocoa">{t.name}</p>
+                  {t.location && (
+                    <p className="text-xs text-muted">{t.location}</p>
+                  )}
+                </div>
+              </div>
             </article>
           ))}
         </div>

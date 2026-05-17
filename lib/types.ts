@@ -2,7 +2,6 @@
 // Single source of truth for all Sanity-derived types.
 // Import from here — never redeclare Product/Category/Testimonial locally.
 
-
 export type SanityImage = {
   asset: {
     _ref: string
@@ -55,4 +54,5 @@ export type SanityTestimonial = {
   location: string | null
   review: string
   rating: number
+  avatar: SanityImage | null
 }
