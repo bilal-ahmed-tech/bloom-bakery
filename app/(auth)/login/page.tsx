@@ -133,6 +133,8 @@ export default function LoginPage() {
       return
     }
 
+    // Refresh session first so Next.js picks up the new auth state
+    router.refresh()
     router.push("/account")
   }
 
