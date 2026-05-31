@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff, AlertCircle } from "lucide-react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 type LoginForm = {
   email: string
@@ -43,6 +43,7 @@ function InputField({
   placeholder,
   error,
   rightElement,
+  onKeyDown,
 }: {
   id: string
   label: string
@@ -52,6 +53,7 @@ function InputField({
   placeholder?: string
   error?: string
   rightElement?: React.ReactNode
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -64,6 +66,7 @@ function InputField({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
@@ -95,14 +98,25 @@ function InputField({
   )
 }
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" })
   const [errors, setErrors] = useState<LoginErrors>({})
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [authError, setAuthError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [registeredSuccess, setRegisteredSuccess] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setRegisteredSuccess(true)
+      // Auto-focus email field after success message
+      const emailInput = document.getElementById("email")
+      if (emailInput) emailInput.focus()
+    }
+  }, [searchParams])
 
   function updateField(field: keyof LoginForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -112,6 +126,15 @@ export default function LoginPage() {
       setErrors(newErrors)
     }
     if (authError) setAuthError("")
+    if (registeredSuccess) setRegisteredSuccess(false)
+  }
+
+  // Handle Enter key press on any form field
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isLoading) {
+      e.preventDefault()
+      handleSubmit()
+    }
   }
 
   async function handleSubmit() {
@@ -140,7 +163,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen">
-
       {/* Left — Image panel */}
       <div className="relative hidden w-1/2 lg:block">
         <Image
@@ -167,7 +189,6 @@ export default function LoginPage() {
       {/* Right — Form */}
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 lg:px-12">
         <div className="w-full max-w-md">
-
           {/* Mobile logo */}
           <Link
             href="/"
@@ -193,6 +214,21 @@ export default function LoginPage() {
             Sign in to your account to continue.
           </p>
 
+          {/* Registration success message */}
+          {registeredSuccess && (
+            <div
+              role="status"
+              className="mt-6 flex items-center gap-2.5 rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3 text-sm text-green-600"
+            >
+              <AlertCircle
+                strokeWidth={1.5}
+                className="h-4 w-4 shrink-0"
+                aria-hidden="true"
+              />
+              Account created successfully! Please sign in.
+            </div>
+          )}
+
           {/* Auth error */}
           {authError && (
             <div
@@ -209,13 +245,20 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <div className="mt-8 flex flex-col gap-5">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSubmit()
+            }}
+            className="mt-8 flex flex-col gap-5"
+          >
             <InputField
               id="email"
               label="Email Address"
               type="email"
               value={form.email}
               onChange={(v) => updateField("email", v)}
+              onKeyDown={handleKeyDown}
               placeholder="ayesha@example.com"
               error={errors.email}
             />
@@ -226,6 +269,7 @@ export default function LoginPage() {
               type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={(v) => updateField("password", v)}
+              onKeyDown={handleKeyDown}
               placeholder="Enter your password"
               error={errors.password}
               rightElement={
@@ -245,8 +289,7 @@ export default function LoginPage() {
             />
 
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               disabled={isLoading}
               className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rose text-sm font-semibold text-cream transition hover:opacity-90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose focus-visible:ring-offset-2"
             >
@@ -279,7 +322,7 @@ export default function LoginPage() {
                 "Sign In"
               )}
             </button>
-          </div>
+          </form>
 
           <p className="mt-6 text-center text-sm text-muted">
             Don&apos;t have an account?{" "}
@@ -293,5 +336,17 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-rose border-t-transparent" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

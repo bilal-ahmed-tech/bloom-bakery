@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff, AlertCircle, Check, X } from "lucide-react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 type RegisterForm = {
@@ -79,6 +80,7 @@ function InputField({
   placeholder,
   error,
   rightElement,
+  onKeyDown,
 }: {
   id: string
   label: string
@@ -88,6 +90,7 @@ function InputField({
   placeholder?: string
   error?: string
   rightElement?: React.ReactNode
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -100,6 +103,7 @@ function InputField({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
@@ -220,6 +224,14 @@ export default function RegisterPage() {
     if (authError) setAuthError("")
   }
 
+  // Handle Enter key press on any form field
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isLoading) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
   async function handleSubmit() {
     setSubmitted(true)
     const newErrors = validateRegisterForm(form)
@@ -246,7 +258,22 @@ export default function RegisterPage() {
         return
       }
 
-      router.push("/login?registered=true")
+      // Auto-login after successful registration
+      const signInResult = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      })
+
+      if (signInResult?.error) {
+        // If auto-login fails, redirect to login page with success message
+        router.push("/login?registered=true")
+        return
+      }
+
+      // Success - refresh session and go to account page
+      router.refresh()
+      router.push("/account")
     } catch {
       setAuthError("Network error. Please try again.")
       setIsLoading(false)
@@ -255,7 +282,6 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen">
-
       {/* Left — Image panel */}
       <div className="relative hidden w-1/2 lg:block">
         <Image
@@ -282,7 +308,6 @@ export default function RegisterPage() {
       {/* Right — Form */}
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 lg:px-12">
         <div className="w-full max-w-md">
-
           {/* Mobile logo */}
           <Link
             href="/"
@@ -324,13 +349,20 @@ export default function RegisterPage() {
           )}
 
           {/* Form */}
-          <div className="mt-8 flex flex-col gap-5">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSubmit()
+            }}
+            className="mt-8 flex flex-col gap-5"
+          >
             <InputField
               id="name"
               label="Full Name"
               type="text"
               value={form.name}
               onChange={(v) => updateField("name", v)}
+              onKeyDown={handleKeyDown}
               placeholder="Ayesha Khan"
               error={errors.name}
             />
@@ -341,6 +373,7 @@ export default function RegisterPage() {
               type="email"
               value={form.email}
               onChange={(v) => updateField("email", v)}
+              onKeyDown={handleKeyDown}
               placeholder="ayesha@example.com"
               error={errors.email}
             />
@@ -352,6 +385,7 @@ export default function RegisterPage() {
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={(v) => updateField("password", v)}
+                onKeyDown={handleKeyDown}
                 placeholder="Create a strong password"
                 error={errors.password}
                 rightElement={
@@ -378,6 +412,7 @@ export default function RegisterPage() {
               type={showConfirm ? "text" : "password"}
               value={form.confirmPassword}
               onChange={(v) => updateField("confirmPassword", v)}
+              onKeyDown={handleKeyDown}
               placeholder="Repeat your password"
               error={errors.confirmPassword}
               rightElement={
@@ -397,8 +432,7 @@ export default function RegisterPage() {
             />
 
             <button
-              type="button"
-              onClick={handleSubmit}
+              type="submit"
               disabled={isLoading}
               className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rose text-sm font-semibold text-cream transition hover:opacity-90 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose focus-visible:ring-offset-2"
             >
@@ -431,7 +465,7 @@ export default function RegisterPage() {
                 "Create Account"
               )}
             </button>
-          </div>
+          </form>
 
           <p className="mt-6 text-center text-sm text-muted">
             Already have an account?{" "}
