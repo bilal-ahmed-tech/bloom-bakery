@@ -205,7 +205,7 @@ export default function ShopContent({ products, categoryParam }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex flex-col gap-8 sm:flex-row">
         {/* Sidebar filters — desktop */}
         <aside className="hidden w-60 shrink-0 sm:block">
           <div className="sticky top-24 flex flex-col gap-8">
